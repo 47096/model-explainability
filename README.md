@@ -2,6 +2,8 @@
 
 **A trust problem, solved with explainability.**
 
+![Model explainability dashboard](image/modelStudio.png)
+
 Leaders will not fund — or defend — a black box. I help teams **open the model**: what drove this score, which features matter, and how algorithms disagree when you ask *why*.
 
 ---

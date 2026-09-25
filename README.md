@@ -61,7 +61,7 @@ I built four models across regression and classification — random forest, logi
 
 | Script | Model | Task | Dataset |
 |--------|-------|------|---------|
-| `01-happiness-random-forest.R` | Random Forest | Regression | World Happiness |
+| `01-apartments-random-forest.R` | Random Forest | Regression | DALEX `apartments` |
 | `02-titanic-logistic.R` | Logistic Regression | Classification | Titanic |
 | `03-mpg-xgboost.R` | XGBoost | Regression | `mpg` |
 | `04-churn-xgboost.R` | XGBoost | Classification | Bank Churners |
@@ -96,11 +96,11 @@ cd model-explainability
 
 ```r
 source("setup.R")
-source("01-happiness-random-forest.R")
+source("01-apartments-random-forest.R")
 # each script opens an interactive dashboard
 ```
 
-**Data:** World Happiness (Kaggle) · Titanic (`DALEX`) · `mpg` · bank churners in `data/`
+**Data:** `apartments` (DALEX) · `titanic_imputed` (DALEX) · `mpg` · bank churners in `data/`
 
 ---
 

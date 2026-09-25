@@ -1,59 +1,46 @@
-# a simple demo using modelStudio for model explainability - classification (xgboost)
+# XGBoost classification + explainability (customer churn)
 
-# load packages
-library(modelStudio)
 library(DALEX)
-library(tidyverse)
+library(modelStudio)
 library(tidymodels)
+library(tidyverse)
 
-# read data from github
-customers <- read.csv('https://raw.githubusercontent.com/wsamuelw/modelStudio/main/data/bank_churners.csv', stringsAsFactors = T)
+# Local data — no remote URL
+customers <- read.csv("data/bank_churners.csv", stringsAsFactors = TRUE)
+customers$still_customer <- as.factor(ifelse(customers$still_customer == "yes", 1, 0))
 
-# convert factor to number
-customers$still_customer <- ifelse(customers$still_customer == 'yes', 1, 0) 
-
-# split data 
-set.seed(222) 
-customers_split <- initial_split(customers, prop = 0.8, strata = still_customer) # enforce similar distributions
-customers_split
-
-customers_train <- training(customers_split); nrow(customers_train) # 8101
-customers_test <- testing(customers_split); nrow(customers_test) # 2026
+set.seed(222)
+customers_split <- initial_split(customers, prop = 0.8, strata = still_customer)
+customers_train <- training(customers_split)
+customers_test <- testing(customers_split)
 
 fit_xgboost <- boost_tree() %>%
   set_mode("classification") %>%
-  set_engine("xgboost") %>% 
-  fit(as.factor(still_customer) ~ ., data = customers_train)
+  set_engine("xgboost") %>%
+  fit(still_customer ~ ., data = customers_train)
+
+# DALEX expects class probability for classification
+yhat_xgb <- function(object, newdata) {
+  predict(object, new_data = newdata, type = "prob")$.pred_1
+}
 
 explainer <- DALEX::explain(
   model = fit_xgboost,
   data = customers_train,
-  y = customers_train$still_customer,
-  label = "XGBoost"
+  y = as.numeric(as.character(customers_train$still_customer)),
+  predict_function = yhat_xgb,
+  label = "XGBoost churn",
+  verbose = FALSE
 )
 
-# make predictions
-predictions <- customers_test %>% 
-  mutate(pred = predict(explainer, customers_test))
+predictions <- customers_test %>%
+  mutate(pred = yhat_xgb(fit_xgboost, customers_test))
 
-head(predictions)
+# One likely stay + one likely leave for the dashboard
+new_observations <- bind_rows(
+  predictions %>% filter(pred < 0.5) %>% slice(1),
+  predictions %>% filter(pred >= 0.5) %>% slice(1)
+)
+rownames(new_observations) <- c("Likely stay", "Likely leave")
 
-# select a row for yes and a row for no from the predictions
-# create a df with prediction = yes
-yes <- predictions %>% 
-  filter(pred > 0.5) %>% 
-  sample_n(1)
-
-# create a df with prediction = no
-no <- predictions %>% 
-  filter(pred < 0.5) %>% 
-  sample_n(1)
-
-new_observations <- rbind(yes, no)
-new_observations
-rownames(new_observations) <- c("Person A", "Person B")
-
-# create modelStudio
-modelStudio(explainer,
-            new_observations,
-            N = 200,  B = 5) # faster example
+modelStudio(explainer, new_observations, N = 200, B = 5)

@@ -1,93 +1,109 @@
-# modelStudio
+# Why did the model decide that?
 
-Comparing model explainability across algorithms — Random Forest, Logistic Regression, and XGBoost — using [modelStudio](https://modelstudio.drwhy.ai/) and [DALEX](https://modelstudio.drwhy.ai/DALEX.html).
+**A trust problem, solved with explainability.**
 
-![modelStudio](https://github.com/wsamuelw/model-studio/blob/main/image/modelStudio.png)
+Leaders will not fund — or defend — a black box. I help teams **open the model**: what drove this score, which features matter, and how algorithms disagree when you ask *why*.
 
-## Problem
+---
 
-Training a model is the easy part. Explaining *why* it made a specific prediction — and whether that reasoning holds across different algorithms — is where real insight lives. This project builds 4 models across regression and classification tasks, then uses interactive explainability dashboards to compare how each one arrives at its predictions.
+## The stake
 
-## Approach
+A high AUC does not get a budget approved. If you cannot explain a credit denial, a churn flag, or a risk score to a stakeholder (or a regulator), the model stays on the shelf — or becomes a liability.
 
-| # | Script | Model | Task | Dataset |
-|---|--------|-------|------|---------|
-| 1 | `1, random forest - regression.R` | Random Forest | Regression | World Happiness |
-| 2 | `2, logistic regression - classification.R` | Logistic Regression | Classification | Titanic |
-| 3 | `3, XGBoost - regression.R` | XGBoost | Regression | `mpg` |
-| 4 | `4, XGBoost - classification.R` | XGBoost | Classification | Bank Churners |
+## The story
 
-Each script follows the same flow: fit model → create DALEX explainer → launch interactive dashboard. The consistency makes it easy to compare how different algorithms explain the same type of problem.
+Training is easy. **Explaining is the work.**
 
-## What the Dashboards Show
+I built four models across regression and classification — random forest, logistic regression, XGBoost — then asked the same explainability questions of each:
 
-- **Break Down** — feature contributions to individual predictions (local explainability)
-- **Shapley Values** — global feature importance (which features matter most overall)
-- **Ceteris Paribus** — how changing one feature affects the outcome (what-if analysis)
-- **Partial Dependence** — marginal effect of each feature across the dataset
+- **What drove this one prediction?** (local)  
+- **What matters overall?** (global)  
+- **What if this feature moved?** (what-if)  
 
-## Key Findings
+**Outcome on this build:**
+- Interactive dashboards you can show a non-technical stakeholder  
+- Clear contrast: spreads vs concentrates importance across models  
+- Coefficient models stay easy to defend; trees need **explicit** explainability  
 
-- **Random Forest** distributes importance more evenly across features — no single feature dominates
-- **XGBoost** concentrates importance in fewer features — more aggressive feature selection
-- **Logistic Regression** provides coefficient-based explanations — easy to interpret but less flexible with non-linear relationships
+> **The commercial idea:** ship models people can **argue with** — not just score with.
 
-## Setup
+---
+
+## What that looks like in your world
+
+| You have | I turn it into |
+|----------|----------------|
+| A model with good metrics | A **reason story** for each score |
+| “Why was this customer flagged?” | Feature contribution on that row |
+| Board / risk / legal questions | Dashboards + plain-English drivers |
+| Several candidate models | A fair **explainability comparison** |
+
+**Typical engagement:** wrap your models in standardised explainers → local + global views → a short “how we defend this” note for stakeholders.
+
+**[Talk to me about model trust →](https://datafying.co/#contactus)** · [datafying](https://datafying.co/)
+
+---
+
+## Why leaders bring me in
+
+- Explains **decisions**, not just accuracy tables  
+- Same lens across algorithms — avoids one-model dogma  
+- Built for **conversations** with risk, product, and ops  
+- Honest about limits: explanation ≠ causality  
+
+---
+
+## Proof of craft *(technical)*
+
+### Four models, one explainability stack
+
+| Script | Model | Task | Dataset |
+|--------|-------|------|---------|
+| `01-happiness-random-forest.R` | Random Forest | Regression | World Happiness |
+| `02-titanic-logistic.R` | Logistic Regression | Classification | Titanic |
+| `03-mpg-xgboost.R` | XGBoost | Regression | `mpg` |
+| `04-churn-xgboost.R` | XGBoost | Classification | Bank Churners |
+
+### What the dashboards show
+- **Break Down** — contribution to one prediction  
+- **Shapley values** — global importance  
+- **Ceteris Paribus** — what-if on a single feature  
+- **Partial dependence** — average effect across the data  
+
+### Findings
+- **Random forest** — importance spread more evenly  
+- **XGBoost** — concentrates on fewer features  
+- **Logistic** — coefficients are easy to defend, weaker on non-linearities  
+
+### Stack
+`DALEX` · `modelStudio` · `ranger` · `tidymodels` · `tidyverse`
+
+### Limits (honesty)
+- Feature importance ≠ legal proof of fairness  
+- Explainers explain the **model**, not the market  
+- Still need policy and human review on material decisions  
+
+---
+
+## Reproduce
 
 ```bash
-git clone https://github.com/wsamuelw/model-studio.git
-cd model-studio
+git clone https://github.com/47096/model-explainability.git
+cd model-explainability
 ```
 
 ```r
-install.packages(c("DALEX", "modelStudio", "ranger", "tidymodels", "tidyverse"))
-source("1, random forest - regression.R")
+source("setup.R")
+source("01-happiness-random-forest.R")
+# each script opens an interactive dashboard
 ```
 
-Each script launches an interactive dashboard in your browser.
+**Data:** World Happiness (Kaggle) · Titanic (`DALEX`) · `mpg` · bank churners in `data/`
 
-## Data
+---
 
-| Dataset | Source | Records | Task |
-|---------|--------|---------|------|
-| World Happiness | [Kaggle](https://www.kaggle.com/unsdsn/world-happiness) | 150+ countries | Predict happiness score |
-| Titanic | `DALEX::titanic_imputed` | 2,207 | Predict survival |
-| `mpg` | `ggplot2::mpg` (built-in) | 234 | Predict highway fuel economy |
-| Bank Churners | `data/bank_churners.csv` (included) | 10,127 | Predict customer churn |
+## Next step
 
-## Tech Stack
+If a model is waiting on “but can we explain it?” — that is the engagement I run.
 
-- **DALEX** — model-agnostic explainability framework
-- **modelStudio** — interactive explainability dashboards
-- **ranger** — fast Random Forest implementation
-- **tidymodels** — unified modelling framework (used for XGBoost)
-- **tidyverse** — data wrangling and visualisation
-
-## Key Concepts
-
-**Explainer** — wraps any model into a standardised format for explainability:
-
-```r
-explainer <- DALEX::explain(
-  model = my_model,
-  data = my_data,
-  y = my_data$target,
-  label = "My Model"
-)
-```
-
-**Per-instance explanations** — pass specific observations to see how the model reasons about individual cases:
-
-```r
-modelStudio(explainer, new_observations = my_data[1:3, ])
-```
-
-## References
-
-- [modelStudio documentation](https://modelstudio.drwhy.ai/)
-- [DALEX: Explainers for Complex Models](https://modelstudio.drwhy.ai/DALEX.html)
-- [DrWhy AI](https://modelstudio.drwhy.ai/) — the Explainable AI family of R packages
-
-## License
-
-MIT
+**[Book a conversation →](https://datafying.co/#contactus)** · Analytics with accountability · [datafying](https://datafying.co/)
